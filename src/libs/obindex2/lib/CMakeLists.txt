@@ -13,28 +13,17 @@ message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
 # Setting the flags for profiling information or not
 if(CMAKE_BUILD_TYPE MATCHES Release)
   message(STATUS "Setting Release options")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -march=native")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
 elseif(CMAKE_BUILD_TYPE MATCHES Debug)
   message(STATUS "Setting Debug options")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O1 -pg -march=native")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O1 -pg -march=native")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O1")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O1")
 endif()
 
-# Check C++11 or C++0x support
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-   message(STATUS "Using flag -std=c++11.")
-elseif(COMPILER_SUPPORTS_CXX0X)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-   message(STATUS "Using flag -std=c++0x.")
-else()
-   message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support.
-                         Please use a different C++ compiler.")
-endif()
+# C++ standard is set via CMAKE_CXX_STANDARD from parent build
+set(CMAKE_CXX_STANDARD 17)
+message(STATUS "Using C++17 standard.")
 
 # Packages required to work with the library
 find_package(OpenCV REQUIRED) # OpenCV

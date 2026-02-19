@@ -81,9 +81,11 @@ class Builder:
     def get_cmake_cmd(self):
         cmd = [
             "cmake",
+            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
             "-DPYTHON_DEFAULT_EXECUTABLE=%s" % sys.executable,
                "-DENABLE_PIC=FALSE", # To workaround emscripten upstream backend issue https://github.com/emscripten-core/emscripten/issues/8761
                "-DCMAKE_BUILD_TYPE=Release",
+               "-DCMAKE_CXX_STANDARD=17",
                "-DCMAKE_TOOLCHAIN_FILE='%s'" % self.get_toolchain_file(),
                "-DCPU_BASELINE=''",
                "-DCMAKE_INSTALL_PREFIX=/usr/local",

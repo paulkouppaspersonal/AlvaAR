@@ -38,7 +38,7 @@ ocv_add_module(js BINDINGS PRIVATE_REQUIRED opencv_js_bindings_generator)
 
 ocv_module_include_directories(${EMSCRIPTEN_INCLUDE_DIR})
 
-add_definitions("-std=c++11")
+add_definitions("-std=c++17")
 
 set(deps ${OPENCV_MODULE_${the_module}_DEPS})
 list(REMOVE_ITEM deps opencv_js_bindings_generator)  # don't add dummy module
@@ -69,9 +69,10 @@ if(COMPILE_FLAGS)
     set_target_properties(${the_module} PROPERTIES COMPILE_FLAGS ${COMPILE_FLAGS})
 endif()
 
-set(EMSCRIPTEN_LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS} --memory-init-file 0 -s TOTAL_MEMORY=128MB -s WASM_MEM_MAX=1GB -s ALLOW_MEMORY_GROWTH=1")
+set(EMSCRIPTEN_LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS} -s TOTAL_MEMORY=128MB -s WASM_MEM_MAX=1GB -s ALLOW_MEMORY_GROWTH=1")
 set(EMSCRIPTEN_LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS} -s MODULARIZE=1 -s SINGLE_FILE=1")
-set(EMSCRIPTEN_LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS} -s EXPORT_NAME=\"'cv'\" -s DEMANGLE_SUPPORT=1")
+set(EMSCRIPTEN_LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS} -s EXPORT_NAME=\"'cv'\"")
+
 set(EMSCRIPTEN_LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS} -s FORCE_FILESYSTEM=1 --use-preload-plugins --bind --post-js ${JS_HELPER} ${COMPILE_FLAGS}")
 set_target_properties(${the_module} PROPERTIES LINK_FLAGS "${EMSCRIPTEN_LINK_FLAGS}")
 

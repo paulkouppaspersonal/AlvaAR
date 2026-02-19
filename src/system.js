@@ -176,6 +176,8 @@ class AlvaAR
 
         const status = this.system.findCameraPose( this.memImg.heap.byteOffset, this.memCam.ptr );
 
+        this.trackingStatus = status;
+
         if( status === 1 )
         {
             // memCam data format = [
@@ -185,6 +187,11 @@ class AlvaAR
             //   tx     ty     tz     1
             // ]
 
+            return this.memCam.read( 16 );
+        }
+        else if( status === 4 )
+        {
+            // LOST — relocalizing. Return last known pose so 3D scene stays visible.
             return this.memCam.read( 16 );
         }
         else if( status === 2 )

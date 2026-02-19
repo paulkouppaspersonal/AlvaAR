@@ -27,7 +27,8 @@
 #include <unordered_set>
 
 #include <boost/dynamic_bitset.hpp>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/features2d.hpp>
 #include <opencv2/core/hal/hal.hpp>
 
 namespace obindex2 {

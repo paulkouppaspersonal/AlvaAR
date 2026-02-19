@@ -15,4 +15,5 @@ void State::reset()
 {
     slamReadyForInit_ = false;
     slamResetRequested_ = false;
+    trackingState_ = TrackingState::NOT_INITIALIZED;
 }

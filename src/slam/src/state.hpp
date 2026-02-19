@@ -34,6 +34,11 @@ public:
     bool slamReadyForInit_ = false;
     bool slamResetRequested_ = false;
 
+    // Relocalization state
+    enum class TrackingState { NOT_INITIALIZED, TRACKING, LOST };
+    TrackingState trackingState_ = TrackingState::NOT_INITIALIZED;
+    int relocMaxAttempts_ = 30;  // max frames to attempt relocalization before hard reset
+
     float minAvgRotationParallax_ = 40.0;
 
     int frameMaxNumKeypoints_;

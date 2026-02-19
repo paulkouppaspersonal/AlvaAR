@@ -143,6 +143,57 @@ void LCDetector::process(const unsigned image_id,
 }
 
 
+void LCDetector::query(const std::vector<cv::KeyPoint>& kps,
+                       const cv::Mat& descs,
+                       LCDetectorResult* result) {
+  result->status = LC_NOT_DETECTED;
+  result->train_id = 0;
+  result->inliers = 0;
+
+  if (index_->numImages() == 0) {
+    result->status = LC_NOT_ENOUGH_IMAGES;
+    return;
+  }
+
+  // Search descriptors against the index (no addition)
+  std::vector<std::vector<cv::DMatch> > matches_feats;
+  index_->searchDescriptors(descs, &matches_feats, 2, 64);
+
+  std::vector<cv::DMatch> matches;
+  filterMatches(matches_feats, &matches);
+
+  if (matches.empty()) {
+    result->status = LC_NOT_ENOUGH_ISLANDS;
+    return;
+  }
+
+  std::vector<obindex2::ImageMatch> image_matches;
+  index_->searchImages(descs, matches, &image_matches, true);
+
+  if (image_matches.empty()) {
+    result->status = LC_NOT_ENOUGH_ISLANDS;
+    return;
+  }
+
+  std::vector<obindex2::ImageMatch> image_matches_filt;
+  filterCandidates(image_matches, &image_matches_filt);
+
+  std::vector<Island> islands;
+  buildIslands(image_matches_filt, &islands);
+
+  if (!islands.size()) {
+    result->status = LC_NOT_ENOUGH_ISLANDS;
+    return;
+  }
+
+  Island island = islands[0];
+  unsigned best_img = island.img_id;
+
+  result->status = LC_DETECTED;
+  result->train_id = best_img;
+  result->inliers = descs.rows;
+}
+
 void LCDetector::addImage(const unsigned image_id,
                           const std::vector<cv::KeyPoint>& kps,
                           const cv::Mat& descs) {

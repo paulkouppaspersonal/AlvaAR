@@ -120,6 +120,11 @@ class LCDetector {
                const cv::Mat& descs,
                LCDetectorResult* result);
 
+  // Search-only: finds best matching image without adding to vocabulary
+  void query(const std::vector<cv::KeyPoint>& kps,
+             const cv::Mat& descs,
+             LCDetectorResult* result);
+
  private:
   // Parameters
   unsigned p_;

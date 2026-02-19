@@ -6,12 +6,14 @@ VisualFrontend::VisualFrontend(std::shared_ptr<State> state,
                                std::shared_ptr<Frame> frame,
                                std::shared_ptr<MapManager> mapManager,
                                std::shared_ptr<Mapper> mapper,
-                               std::shared_ptr<FeatureTracker> featureTracker) :
+                               std::shared_ptr<FeatureTracker> featureTracker,
+                               std::shared_ptr<Relocalizer> relocalizer) :
         state_(state),
         currFrame_(frame),
         mapManager_(mapManager),
         mapper_(mapper),
-        featureTracker_(featureTracker)
+        featureTracker_(featureTracker),
+        relocalizer_(relocalizer)
 {
     cv::Size gridSize(state_->imgWidth_ / state_->claheTileSize_, state_->imgHeight_ / state_->claheTileSize_);
 
@@ -30,6 +32,12 @@ void VisualFrontend::track(cv::Mat &image, double timestamp)
         {
             Keyframe kf(currFrame_->keyframeId_, image);
             mapper_->processNewKeyframe(kf);
+
+            // Feed keyframe descriptors into relocalization vocabulary
+            if (relocalizer_)
+            {
+                feedKeyframeToRelocalizer();
+            }
         }
     }
 }
@@ -87,6 +95,41 @@ bool VisualFrontend::process(cv::Mat &image, double timestamp)
 
             if (poseFailedCounter_ > 3)
             {
+                // Enter LOST state — attempt relocalization before full reset
+                state_->trackingState_ = State::TrackingState::LOST;
+
+                if (relocalizer_ && relocFailedCounter_ < state_->relocMaxAttempts_)
+                {
+                    bool relocated = relocalizer_->attempt(currImage_);
+
+                    if (relocated)
+                    {
+                        state_->trackingState_ = State::TrackingState::TRACKING;
+                        poseFailedCounter_ = 0;
+                        relocFailedCounter_ = 0;
+                        motionModel_.reset();
+
+                        if (state_->debug_)
+                        {
+                            std::cout << "- [Visual-Frontend]: Relocalization succeeded!" << std::endl;
+                        }
+
+                        return true; // request new keyframe to re-establish tracking
+                    }
+
+                    relocFailedCounter_++;
+
+                    if (state_->debug_)
+                    {
+                        std::cout << "- [Visual-Frontend]: Relocalization attempt "
+                                  << relocFailedCounter_ << "/" << state_->relocMaxAttempts_
+                                  << " failed" << std::endl;
+                    }
+
+                    return false;
+                }
+
+                // Exhausted relocalization attempts or no relocalizer — full reset
                 state_->slamResetRequested_ = true;
                 return false;
             }
@@ -715,6 +758,35 @@ void VisualFrontend::resetFrame()
     currFrame_->numOccupiedCells_ = 0;
 }
 
+void VisualFrontend::feedKeyframeToRelocalizer()
+{
+    auto keyframe = mapManager_->getKeyframe(currFrame_->keyframeId_);
+
+    if (!keyframe)
+    {
+        return;
+    }
+
+    auto kps = keyframe->getKeypoints();
+    std::vector<cv::KeyPoint> cvKps;
+    cv::Mat descs;
+
+    for (const auto &kp : kps)
+    {
+        if (!kp.desc_.empty())
+        {
+            cv::KeyPoint cvKp(kp.px_, 7.f);
+            cvKps.push_back(cvKp);
+            descs.push_back(kp.desc_);
+        }
+    }
+
+    if (!cvKps.empty())
+    {
+        relocalizer_->addKeyframe(currFrame_->keyframeId_, cvKps, descs);
+    }
+}
+
 void VisualFrontend::reset()
 {
     currImage_.release();
@@ -725,4 +797,5 @@ void VisualFrontend::reset()
     keyframePyramid_.clear();
 
     poseFailedCounter_ = 0;
+    relocFailedCounter_ = 0;
 }

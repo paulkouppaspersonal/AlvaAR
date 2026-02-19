@@ -7,6 +7,7 @@
 #include "map_manager.hpp"
 #include "mapper.hpp"
 #include "feature_tracker.hpp"
+#include "relocalizer.hpp"
 
 class MotionModel
 {
@@ -76,7 +77,7 @@ public:
     VisualFrontend()
     {}
 
-    VisualFrontend(std::shared_ptr<State> state, std::shared_ptr<Frame> frame, std::shared_ptr<MapManager> mapManager, std::shared_ptr<Mapper> mapper, std::shared_ptr<FeatureTracker> featureTracker);
+    VisualFrontend(std::shared_ptr<State> state, std::shared_ptr<Frame> frame, std::shared_ptr<MapManager> mapManager, std::shared_ptr<Mapper> mapper, std::shared_ptr<FeatureTracker> featureTracker, std::shared_ptr<Relocalizer> relocalizer);
 
     void track(cv::Mat &image, double timestamp);
 
@@ -100,11 +101,14 @@ private:
 
     void resetFrame();
 
+    void feedKeyframeToRelocalizer();
+
     std::shared_ptr<State> state_;
     std::shared_ptr<Frame> currFrame_;
     std::shared_ptr<MapManager> mapManager_;
     std::shared_ptr<Mapper> mapper_;
     std::shared_ptr<FeatureTracker> featureTracker_;
+    std::shared_ptr<Relocalizer> relocalizer_;
 
     cv::Ptr<cv::CLAHE> clahe_;
     cv::Mat currImage_;
@@ -117,4 +121,5 @@ private:
 
     bool p3pReq_ = false;
     int poseFailedCounter_ = 0;
+    int relocFailedCounter_ = 0;
 };

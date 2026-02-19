@@ -15,6 +15,7 @@
 #include "state.hpp"
 #include "utils.hpp"
 #include "visual_frontend.hpp"
+#include "relocalizer.hpp"
 
 class System
 {
@@ -50,6 +51,7 @@ private:
     std::unique_ptr<VisualFrontend> visualFrontend_;
     std::shared_ptr<FeatureExtractor> featureExtractor_;
     std::shared_ptr<FeatureTracker> featureTracker_;
+    std::shared_ptr<Relocalizer> relocalizer_;
 
     Eigen::Vector3d currTranslation_;
     Eigen::Vector3d prevTranslation_;

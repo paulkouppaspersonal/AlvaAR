@@ -11,10 +11,10 @@ void Mapper::processNewKeyframe(const Keyframe &keyframe)
     std::shared_ptr<Frame> newKeyframe = mapManager_->getKeyframe(keyframe.keyframeId_);
     assert(newKeyframe);
 
-    // just keep the last 30 keyframes in our map
-    if (keyframe.keyframeId_ > 30)
+    // just keep the last 120 keyframes in our map
+    if (keyframe.keyframeId_ > 120)
     {
-        mapManager_->removeKeyframe(keyframe.keyframeId_ - 30);
+        mapManager_->removeKeyframe(keyframe.keyframeId_ - 120);
     }
 
     // Triangulate temporal

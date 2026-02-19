@@ -35,8 +35,9 @@ void System::configure(int imageWidth, int imageHeight, double fx, double fy, do
 
     mapManager_ = std::make_shared<MapManager>(state_, currFrame_, featureExtractor_);
     mapper_ = std::make_shared<Mapper>(state_, mapManager_, currFrame_);
+    relocalizer_ = std::make_shared<Relocalizer>(state_, currFrame_, mapManager_);
 
-    visualFrontend_ = std::make_unique<VisualFrontend>(state_, currFrame_, mapManager_, mapper_, featureTracker_);
+    visualFrontend_ = std::make_unique<VisualFrontend>(state_, currFrame_, mapManager_, mapper_, featureTracker_, relocalizer_);
 }
 
 void System::reset()
@@ -49,6 +50,7 @@ void System::reset()
     currFrame_->reset();
     visualFrontend_->reset();
     mapManager_->reset();
+    relocalizer_->reset();
     state_->reset();
 
     prevTranslation_.setZero();
@@ -169,6 +171,12 @@ int System::processCameraPose(cv::Mat &image, double timestamp)
     if (!state_->slamReadyForInit_)
     {
         return 3;
+    }
+
+    // Return 4 when in LOST state (attempting relocalization)
+    if (state_->trackingState_ == State::TrackingState::LOST)
+    {
+        return 4;
     }
 
     return 1;

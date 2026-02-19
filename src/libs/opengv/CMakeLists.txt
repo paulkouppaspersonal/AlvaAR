@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(opengv VERSION 1.0 LANGUAGES CXX)
 
-set(CMAKE_TOOLCHAIN_FILE "~/Development/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake")
+# CMAKE_TOOLCHAIN_FILE is set by emcmake at build time
 
 # Set the build type.  Options are:
 #
@@ -32,13 +32,15 @@ IF(MSVC)
   add_compile_options(/wd4514 /wd4267 /bigobj)
   add_definitions(-D_USE_MATH_DEFINES)
 ELSE()
-  IF (CMAKE_SYSTEM_PROCESSOR MATCHES "(arm64)|(ARM64)|(aarch64)|(AARCH64)")
-    add_definitions (-march=armv8-a)
-  ELSEIF (CMAKE_SYSTEM_PROCESSOR MATCHES 
-          "(arm)|(ARM)|(armhf)|(ARMHF)|(armel)|(ARMEL)")
-    add_definitions (-march=armv7-a)
-  ELSE ()
-    add_definitions (-march=native) #TODO use correct c++11 def once everybody has moved to gcc 4.7 # for now I even removed std=gnu++0x
+  IF(NOT EMSCRIPTEN)
+    IF (CMAKE_SYSTEM_PROCESSOR MATCHES "(arm64)|(ARM64)|(aarch64)|(AARCH64)")
+      add_definitions (-march=armv8-a)
+    ELSEIF (CMAKE_SYSTEM_PROCESSOR MATCHES
+            "(arm)|(ARM)|(armhf)|(ARMHF)|(armel)|(ARMEL)")
+      add_definitions (-march=armv7-a)
+    ELSE ()
+      add_definitions (-march=native)
+    ENDIF()
   ENDIF()
   add_definitions (
     -O3

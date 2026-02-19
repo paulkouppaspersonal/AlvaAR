@@ -4,10 +4,13 @@
 LIB_ROOT=$PWD
 
 # Ensure this is adjusted to your local emsdk path
-EMSCRIPTEN_DIR=~/Development/emsdk/upstream/emscripten
+EMSCRIPTEN_DIR=/private/tmp/emsdk/upstream/emscripten
 
 # Emscripten cmake
 EMSCRIPTEN_CMAKE_DIR=$EMSCRIPTEN_DIR/cmake/Modules/Platform/Emscripten.cmake
+
+# CMake 4.x compatibility: allow older cmake_minimum_required versions
+CMAKE_COMPAT="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 
 # Sets the compile flags. [SIMD, THREADS, DEFAULT]
 BUILD_TYPE="DEFAULT"
@@ -37,7 +40,7 @@ build_OPENCV() {
   rm -rf $INSTALL_DIR/opencv/
   rm -rf $LIB_ROOT/opencv/build
 
-  python $LIB_ROOT/opencv/platforms/js/build_js.py $LIB_ROOT/opencv/build --build_wasm $CONF_OPENCV --emscripten_dir $EMSCRIPTEN_DIR
+  python3 $LIB_ROOT/opencv/platforms/js/build_js.py $LIB_ROOT/opencv/build --build_wasm $CONF_OPENCV --emscripten_dir $EMSCRIPTEN_DIR
   cp -r $LIB_ROOT/opencv/build $INSTALL_DIR/opencv/
 }
 
@@ -48,6 +51,7 @@ build_EIGEN() {
 
   cd $LIB_ROOT/eigen/build
   emcmake cmake .. \
+    $CMAKE_COMPAT \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN_CMAKE_DIR \
@@ -65,6 +69,7 @@ build_OBINDEX2() {
 
   cd $LIB_ROOT/obindex2/build
   emcmake cmake .. \
+    $CMAKE_COMPAT \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN_CMAKE_DIR \
@@ -83,6 +88,7 @@ build_IBOW_LCD(){
 
   cd $LIB_ROOT/ibow_lcd/build
   emcmake cmake .. \
+    $CMAKE_COMPAT \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN_CMAKE_DIR \
@@ -101,6 +107,7 @@ build_SOPHUS(){
 
   cd $LIB_ROOT/Sophus/build
   emcmake cmake .. \
+    $CMAKE_COMPAT \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN_CMAKE_DIR \
@@ -122,11 +129,12 @@ build_CERES(){
 
   cd $LIB_ROOT/ceres-solver/build
   emcmake cmake .. \
+    $CMAKE_COMPAT \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN_CMAKE_DIR \
-    -DCMAKE_CXX_FLAGS="${BUILD_FLAGS} -march=native" \
-    -DCMAKE_C_FLAGS="${BUILD_FLAGS} -march=native" \
+    -DCMAKE_CXX_FLAGS="${BUILD_FLAGS}" \
+    -DCMAKE_C_FLAGS="${BUILD_FLAGS}" \
     -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR/ceres-solver/ \
     -DBUILD_SHARED_LIBS=OFF \
     -DBUILD_EXAMPLES:BOOL=0 \
@@ -146,6 +154,7 @@ build_OPENGV(){
 
   cd $LIB_ROOT/opengv/build
   emcmake cmake .. \
+    $CMAKE_COMPAT \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_CXX_STANDARD=17 \
     -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN_CMAKE_DIR \
